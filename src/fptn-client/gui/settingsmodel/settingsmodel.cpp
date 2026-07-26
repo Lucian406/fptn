@@ -260,6 +260,16 @@ void SettingsModel::Load(bool dont_load_server) {
     bypass_method_ = kBypassMethodSniRealityYandex26_4;  // BYDEFAULT
   }
 
+  if (service_obj.contains("connection_strategy")) {
+    connection_strategy_ = service_obj["connection_strategy"].toString();
+  }
+  if (connection_strategy_ != kConnectionStrategyPersistent &&
+      connection_strategy_ != kConnectionStrategyRolling &&
+      connection_strategy_ != kConnectionStrategyDual &&
+      connection_strategy_ != kConnectionStrategyTriple) {
+    connection_strategy_ = kConnectionStrategyDual;
+  }
+
   if (service_obj.contains("blacklist_domains")) {
     blacklist_domains_ = service_obj["blacklist_domains"].toString();
   }
@@ -404,6 +414,7 @@ bool SettingsModel::Save() {
   json_object["autostart"] = client_autostart_ ? 1 : 0;
   json_object["sni"] = sni_;
   json_object["bypass_method"] = bypass_method_;
+  json_object["connection_strategy"] = connection_strategy_;
 
 #if _WIN32
   json_object["enable_advanced_dns_management"] =
@@ -544,6 +555,16 @@ QString SettingsModel::BypassMethod() const {
 
 void SettingsModel::SetBypassMethod(const QString& method) {
   bypass_method_ = method;
+  Save();
+}
+
+QString SettingsModel::ConnectionStrategy() const {
+  return connection_strategy_.isEmpty() ? kConnectionStrategyDual
+                                        : connection_strategy_;
+}
+
+void SettingsModel::SetConnectionStrategy(const QString& strategy) {
+  connection_strategy_ = strategy;
   Save();
 }
 

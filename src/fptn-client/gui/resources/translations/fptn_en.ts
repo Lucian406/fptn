@@ -288,6 +288,30 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <translation>Traffic masking (obfuscation)</translation>
         </message>
         <message>
+            <source>Connection strategy</source>
+            <translation>Connection strategy</translation>
+        </message>
+        <message>
+            <source>Persistent tunnel</source>
+            <translation>Persistent tunnel</translation>
+        </message>
+        <message>
+            <source>Rolling tunnel</source>
+            <translation>Rolling tunnel</translation>
+        </message>
+        <message>
+            <source>Dual rolling tunnel</source>
+            <translation>Dual rolling tunnel</translation>
+        </message>
+        <message>
+            <source>Triple rolling tunnel</source>
+            <translation>Triple rolling tunnel</translation>
+        </message>
+        <message>
+            <source>Browser mimicry (experimental)</source>
+            <translation>Browser mimicry (experimental)</translation>
+        </message>
+        <message>
             <source>SNI-REALITY (Generic)</source>
             <translation>Domain spoofing (default)</translation>
         </message>

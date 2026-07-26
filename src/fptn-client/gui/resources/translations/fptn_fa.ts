@@ -288,6 +288,30 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <translation>پنهان‌سازی ترافیک (obfuscation)</translation>
         </message>
         <message>
+            <source>Connection strategy</source>
+            <translation>راهبرد اتصال</translation>
+        </message>
+        <message>
+            <source>Persistent tunnel</source>
+            <translation>تونل دائمی</translation>
+        </message>
+        <message>
+            <source>Rolling tunnel</source>
+            <translation>تونل چرخشی</translation>
+        </message>
+        <message>
+            <source>Dual rolling tunnel</source>
+            <translation>تونل چرخشی دوگانه</translation>
+        </message>
+        <message>
+            <source>Triple rolling tunnel</source>
+            <translation>تونل چرخشی سه‌گانه</translation>
+        </message>
+        <message>
+            <source>Browser mimicry (experimental)</source>
+            <translation>تقلید مرورگر (آزمایشی)</translation>
+        </message>
+        <message>
             <source>SNI-REALITY (Generic)</source>
             <translation>جعل دامنه (پیش‌فرض)</translation>
         </message>

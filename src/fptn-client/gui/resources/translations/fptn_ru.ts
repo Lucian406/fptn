@@ -289,6 +289,30 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <translation>Маскировка трафика (Обфускация)</translation>
         </message>
         <message>
+            <source>Connection strategy</source>
+            <translation>Стратегия подключения</translation>
+        </message>
+        <message>
+            <source>Persistent tunnel</source>
+            <translation>Постоянный туннель</translation>
+        </message>
+        <message>
+            <source>Rolling tunnel</source>
+            <translation>Скользящий туннель</translation>
+        </message>
+        <message>
+            <source>Dual rolling tunnel</source>
+            <translation>Двойной скользящий туннель</translation>
+        </message>
+        <message>
+            <source>Triple rolling tunnel</source>
+            <translation>Тройной скользящий туннель</translation>
+        </message>
+        <message>
+            <source>Browser mimicry (experimental)</source>
+            <translation>Имитация браузера (экспериментально)</translation>
+        </message>
+        <message>
             <source>SNI-REALITY (Generic)</source>
             <translation>Подмена домена (по умолчанию)</translation>
         </message>

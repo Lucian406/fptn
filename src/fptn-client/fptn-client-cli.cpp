@@ -141,6 +141,26 @@ int main(int argc, char* argv[]) {
           }
           return v;
         });
+    args.add_argument("--connection-strategy")
+        .default_value("persistent-tunnel")
+        .help(
+            "Connection strategy:\n"
+            "  persistent-tunnel     - a single long-lived tunnel\n"
+            "  rolling-tunnel        - a single tunnel renewed every 10 "
+            "minutes\n"
+            "  dual-rolling-tunnel   - two rolling tunnels in parallel\n"
+            "  triple-rolling-tunnel - three rolling tunnels in parallel\n")
+        .action([](const std::string& v) {
+          if (v != "persistent-tunnel" && v != "rolling-tunnel" &&
+              v != "dual-rolling-tunnel" && v != "triple-rolling-tunnel") {
+            throw std::runtime_error(fmt::format(
+                "Invalid connection strategy '{}'. Choose from: "
+                "persistent-tunnel, rolling-tunnel, dual-rolling-tunnel, "
+                "triple-rolling-tunnel",
+                v));
+          }
+          return v;
+        });
     // networks
     args.add_argument("--exclude-tunnel-networks")
         .default_value(FPTN_CLIENT_DEFAULT_EXCLUDE_NETWORKS)
@@ -314,6 +334,21 @@ int main(int argc, char* argv[]) {
       censorship_strategy = CensorshipStrategy::kSniRealityModeSafari26_4;
     }
 
+    using fptn::protocol::connection::strategies::ConnectionStrategy;
+    const auto connection_strategy_name =
+        args.get<std::string>("--connection-strategy");
+    ConnectionStrategy connection_strategy =
+        ConnectionStrategy::kPersistentTunnel;
+    if (connection_strategy_name == "browser-mimicry") {
+      connection_strategy = ConnectionStrategy::kBrowserMimicry;
+    } else if (connection_strategy_name == "dual-rolling-tunnel") {
+      connection_strategy = ConnectionStrategy::kDualTunnel;
+    } else if (connection_strategy_name == "triple-rolling-tunnel") {
+      connection_strategy = ConnectionStrategy::kTripleTunnel;
+    } else if (connection_strategy_name == "rolling-tunnel") {
+      connection_strategy = ConnectionStrategy::kRollingTunnel;
+    }
+
     /* parse network lists */
     const auto exclude_networks_str =
         args.get<std::string>("--exclude-tunnel-networks");
@@ -406,15 +441,18 @@ int main(int argc, char* argv[]) {
 
     /* auth & dns */
     auto http_client = std::make_unique<fptn::vpn::http::Client>(
-        fptn::protocol::https::WebsocketClient::Config{.server_ip = server_ip,
-            .server_port = selected_server.port,
-            .tun_interface_address_ipv4 = tun_interface_address_ipv4,
-            .tun_interface_address_ipv6 = tun_interface_address_ipv6,
-            .sni = sni,
-            .expected_md5_fingerprint = selected_server.md5_fingerprint,
-            .censorship_strategy = censorship_strategy,
-            .on_connected_callback = nullptr,
-            .new_ip_pkt_callback = nullptr});
+        fptn::protocol::https::ConnectionConfig{
+            .common = {
+                .server_ip = server_ip,
+                .server_port =
+                    static_cast<std::uint16_t>(selected_server.port),
+                .sni = sni,
+                .md5_fingerprint = selected_server.md5_fingerprint,
+                .censorship_strategy = censorship_strategy,
+                .tun_interface_address_ipv4 = tun_interface_address_ipv4,
+                .tun_interface_address_ipv6 = tun_interface_address_ipv6,
+            }},
+        connection_strategy);
 
     if (!pre_obtained_token.empty()) {
       http_client->SetAccessToken(pre_obtained_token);
