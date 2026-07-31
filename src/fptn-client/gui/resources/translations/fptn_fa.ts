@@ -527,11 +527,11 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <translation>دامنه‌هایی که VPN را دور بزنند</translation>
         </message>
         <message>
-            <source>List domains that should bypass VPN tunnel. Only these domains will go through VPN, all other traffic bypasses VPN</source>
+            <source>List domains that should use VPN tunnel. Only these domains will go through VPN, all other traffic bypasses VPN</source>
             <translation>فهرست دامنه‌هایی که باید از تونل VPN عبور کنند. فقط این دامنه‌ها از VPN عبور می‌کنند، بقیه ترافیک VPN را دور می‌زند.</translation>
         </message>
         <message>
-            <source>List websites that should bypass VPN tunnel. These domains will go directly, all other traffic uses VPN</source>
+            <source>List domains that should bypass VPN tunnel. These domains will go directly, all other traffic uses VPN</source>
             <translation>فهرست وب‌سایت‌هایی که باید تونل VPN را دور بزنند. این دامنه‌ها مستقیماً متصل می‌شوند، بقیه ترافیک از VPN استفاده می‌کند</translation>
         </message>
         <message>
