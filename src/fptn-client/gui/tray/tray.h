@@ -14,8 +14,6 @@ Distributed under the MIT License (https://opensource.org/licenses/MIT)
 
 #include <QAction>          // NOLINT(build/include_order)
 #include <QApplication>     // NOLINT(build/include_order)
-#include <QLabel>           // NOLINT(build/include_order)
-#include <QVBoxLayout>      // NOLINT(build/include_order)
 #include <QMenu>            // NOLINT(build/include_order)
 #include <QMouseEvent>      // NOLINT(build/include_order)
 #include <QObject>          // NOLINT(build/include_order)
@@ -111,9 +109,6 @@ class TrayApp : public QWidget {
   QAction* connecting_label_action_ = nullptr;
   QAction* disconnecting_label_action_ = nullptr;
   QAction* reconnecting_label_action_ = nullptr;
-  QWidgetAction* connection_time_action_ = nullptr;
-  QWidget* connection_time_widget_ = nullptr;
-  QLabel* connection_time_label_ = nullptr;
   QWidgetAction* speed_widget_action_ = nullptr;
   SpeedWidget* speed_widget_ = nullptr;
   QTimer* update_timer_ = nullptr;
