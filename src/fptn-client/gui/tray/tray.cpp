@@ -328,9 +328,6 @@ void TrayApp::UpdateTrayMenu() {
   switch (connection_state_) {
     case ConnectionState::None: {
       tray_icon_->setIcon(QIcon(inactive_icon_path_));
-      if (connection_time_widget_) {
-        connection_time_widget_->setVisible(false);
-      }
       const auto& services = settings_->Services();
 
       // calculate services
@@ -453,9 +450,6 @@ void TrayApp::UpdateTrayMenu() {
     }
     case ConnectionState::Connecting: {
       tray_icon_->setIcon(QIcon(inactive_icon_path_));
-      if (connection_time_widget_) {
-        connection_time_widget_->setVisible(false);
-      }
       if (connecting_label_action_) {
         connecting_label_action_->setVisible(true);
       }
@@ -484,12 +478,6 @@ void TrayApp::UpdateTrayMenu() {
                                             selected_server_.name)));
         disconnect_action_->setVisible(true);
       }
-      if (connection_time_action_) {
-        connection_time_action_->setVisible(true);
-      }
-      if (connection_time_widget_) {
-        connection_time_widget_->setVisible(true);
-      }
       if (speed_widget_) {
         speed_widget_->setVisible(true);
       }
@@ -512,9 +500,6 @@ void TrayApp::UpdateTrayMenu() {
     }
     case ConnectionState::Disconnecting: {
       tray_icon_->setIcon(QIcon(inactive_icon_path_));
-      if (connection_time_widget_) {
-        connection_time_widget_->setVisible(false);
-      }
       if (disconnect_action_) {
         disconnect_action_->setVisible(false);
       }
