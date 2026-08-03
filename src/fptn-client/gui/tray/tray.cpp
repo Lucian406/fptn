@@ -43,6 +43,19 @@ using fptn::gui::TrayApp;
 
 namespace {
 
+QString FormatConnectionTime(qint64 total_seconds) {
+  const qint64 h = total_seconds / 3600;
+  const qint64 m = (total_seconds % 3600) / 60;
+  const qint64 s = total_seconds % 60;
+  if (h > 0) {
+    return QString("%1:%2:%3")
+        .arg(h)
+        .arg(m, 2, 10, QChar('0'))
+        .arg(s, 2, 10, QChar('0'));
+  }
+  return QString("%1:%2").arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0'));
+}
+
 #ifndef __APPLE__
 QPixmap LoadIcon(const QString& icon_path, int size = 12) {
   QPixmap pixmap(icon_path);
@@ -158,6 +171,17 @@ TrayApp::TrayApp(const SettingsModelPtr& settings, QObject* parent)
   connect(reconnecting_label_action_, &QAction::triggered, this,
       &TrayApp::onDisconnectFromServer);
 
+  // Connection time widget (hidden until connected)
+  connection_time_widget_ = new QWidget(tray_menu_);
+  auto* connection_time_layout = new QVBoxLayout(connection_time_widget_);
+  connection_time_layout->setContentsMargins(4, 4, 4, 4);
+  connection_time_label_ = new QLabel("", connection_time_widget_);
+  connection_time_layout->addWidget(connection_time_label_);
+
+  connection_time_action_ = new QWidgetAction(this);
+  connection_time_action_->setDefaultWidget(connection_time_widget_);
+  connection_time_action_->setVisible(false);
+
   // Disconect
   disconnect_action_ = new QAction(QObject::tr("Disconnect"), this);
 #ifndef __APPLE__
@@ -208,6 +232,7 @@ TrayApp::TrayApp(const SettingsModelPtr& settings, QObject* parent)
   tray_menu_->addAction(connecting_label_action_);
   tray_menu_->addAction(disconnecting_label_action_);
   tray_menu_->addAction(reconnecting_label_action_);
+  tray_menu_->addAction(connection_time_action_);
   tray_menu_->addAction(speed_widget_action_);
   tray_menu_->addSeparator();
   tray_menu_->addAction(settings_action_);
@@ -315,6 +340,12 @@ void TrayApp::UpdateTrayMenu() {
   switch (connection_state_) {
     case ConnectionState::None: {
       tray_icon_->setIcon(QIcon(inactive_icon_path_));
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(false);
+      }
+      if (connection_time_widget_) {
+        connection_time_widget_->setVisible(false);
+      }
       const auto& services = settings_->Services();
 
       // calculate services
@@ -437,6 +468,12 @@ void TrayApp::UpdateTrayMenu() {
     }
     case ConnectionState::Connecting: {
       tray_icon_->setIcon(QIcon(inactive_icon_path_));
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(false);
+      }
+      if (connection_time_widget_) {
+        connection_time_widget_->setVisible(false);
+      }
       if (connecting_label_action_) {
         connecting_label_action_->setVisible(true);
       }
@@ -461,8 +498,15 @@ void TrayApp::UpdateTrayMenu() {
       tray_icon_->setIcon(QIcon(active_icon_path_));
       if (disconnect_action_) {
         disconnect_action_->setText(QString(QObject::tr("Disconnect") + ": %1")
-                .arg(QString::fromStdString(selected_server_.name)));
+                                        .arg(QString::fromStdString(
+                                            selected_server_.name)));
         disconnect_action_->setVisible(true);
+      }
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(true);
+      }
+      if (connection_time_widget_) {
+        connection_time_widget_->setVisible(true);
       }
       if (speed_widget_) {
         speed_widget_->setVisible(true);
@@ -486,6 +530,12 @@ void TrayApp::UpdateTrayMenu() {
     }
     case ConnectionState::Disconnecting: {
       tray_icon_->setIcon(QIcon(inactive_icon_path_));
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(false);
+      }
+      if (connection_time_widget_) {
+        connection_time_widget_->setVisible(false);
+      }
       if (disconnect_action_) {
         disconnect_action_->setVisible(false);
       }
@@ -536,7 +586,9 @@ void TrayApp::onDisconnectFromServer() {
     vpn_client_->Stop();
     vpn_client_.reset();
   }
-
+  if (connection_time_label_) {
+    connection_time_label_->setText("");
+  }
   settings_->StartPingMonitoring();
 
   UpdateTrayMenu();
@@ -608,6 +660,7 @@ void TrayApp::handleConnected() {
     const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
     connection_state_ = ConnectionState::Connected;
+    connection_start_time_ = std::chrono::steady_clock::now();
   }
   UpdateTrayMenu();
 }
@@ -664,6 +717,15 @@ void TrayApp::handleTimer() {
         if (disconnect_action_) {
           disconnect_action_->setVisible(false);
         }
+        if (connection_time_label_) {
+          const auto secs = std::chrono::duration_cast<std::chrono::seconds>(
+                                std::chrono::steady_clock::now() -
+                                connection_start_time_)
+                                .count();
+          connection_time_label_->setText(" " + QObject::tr("Connection time") +
+                                          ": " +
+                                          FormatConnectionTime(secs));
+        }
       } else {
         if (reconnecting_label_action_) {
           reconnecting_label_action_->setVisible(false);
@@ -674,6 +736,15 @@ void TrayApp::handleTimer() {
         if (speed_widget_) {
           speed_widget_->UpdateSpeed(
               vpn_client_->GetReceiveRate(), vpn_client_->GetSendRate());
+        }
+        if (connection_time_label_) {
+          const auto secs = std::chrono::duration_cast<std::chrono::seconds>(
+                                std::chrono::steady_clock::now() -
+                                connection_start_time_)
+                                .count();
+          connection_time_label_->setText(" " + QObject::tr("Connection time") +
+                                          ": " +
+                                          FormatConnectionTime(secs));
         }
       }
     }
@@ -711,6 +782,15 @@ void TrayApp::RetranslateUi() {
   }
   if (connecting_label_action_) {
     connecting_label_action_->setText(QObject::tr("Connecting..."));
+  }
+  if (connection_time_label_) {
+    const auto secs = std::chrono::duration_cast<std::chrono::seconds>(
+                          std::chrono::steady_clock::now() -
+                          connection_start_time_)
+                          .count();
+    connection_time_label_->setText(" " + QObject::tr("Connection time") +
+                                    ": " +
+                                    FormatConnectionTime(secs));
   }
   if (empty_configuration_action_) {
     empty_configuration_action_->setText(QObject::tr("No servers"));
