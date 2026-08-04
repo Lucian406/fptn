@@ -655,9 +655,10 @@ void TrayApp::handleTimer() {
           const int n = vpn_client_->ReconnectAttempt();
           QString text = QObject::tr("Reconnecting...");
           if (n > 0) {
-            text += QString(" (%1/%2)")
-                        .arg(n)
-                        .arg(vpn_client_->MaxReconnectAttempts());
+            const int max = vpn_client_->MaxReconnectAttempts();
+            const QString max_str =
+                (max > 0) ? QString::number(max) : QString::fromUtf8("∞");
+            text += QString(" (%1/%2)").arg(n).arg(max_str);
           }
           reconnecting_label_action_->setText(text);
           reconnecting_label_action_->setVisible(true);
