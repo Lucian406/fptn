@@ -475,6 +475,10 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <translation>Block ads</translation>
         </message>
         <message>
+            <source>Reconnect attempts:</source>
+            <translation>Reconnect attempts:</translation>
+        </message>        
+        <message>
             <source>Blacklist domains</source>
             <translation>Blacklist domains</translation>
         </message>

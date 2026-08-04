@@ -169,6 +169,23 @@ void SettingsWidget::SetupUi() {
   grid_layout_->addWidget(enable_ad_block_label_, 4, 0, Qt::AlignLeft);
   grid_layout_->addWidget(enable_ad_block_checkbox_, 4, 1, Qt::AlignLeft);
 
+  reconnect_attempts_label_ = new QLabel(QObject::tr("Reconnect attempts:"), this);
+  reconnect_attempts_combo_ = new QComboBox(this);
+  reconnect_attempts_combo_->addItem("5", 5);
+  reconnect_attempts_combo_->addItem("10", 10);
+  reconnect_attempts_combo_->addItem("15", 15);
+  reconnect_attempts_combo_->addItem("35", 35);
+  reconnect_attempts_combo_->addItem(QString::fromUtf8("∞"), 0);
+
+  int idx = reconnect_attempts_combo_->findData(settings_->ReconnectAttempts());
+  if (idx != -1) reconnect_attempts_combo_->setCurrentIndex(idx);
+
+  connect(reconnect_attempts_combo_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+      [this](int i) { settings_->SetReconnectAttempts(reconnect_attempts_combo_->itemData(i).toInt()); });
+
+  grid_layout_->addWidget(reconnect_attempts_label_, 5, 0, Qt::AlignLeft);
+  grid_layout_->addWidget(reconnect_attempts_combo_, 5, 1, Qt::AlignLeft);
+
   custom_dns_label_ = new QLabel(QObject::tr("Custom DNS"), this);
   custom_dns_auto_checkbox_ = new QCheckBox(QObject::tr("Auto"), this);
   custom_dns_line_edit_ = new QLineEdit(this);

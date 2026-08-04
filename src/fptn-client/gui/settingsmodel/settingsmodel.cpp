@@ -91,7 +91,8 @@ SettingsModel::SettingsModel(const QMap<QString, QString>& languages,
 #endif
       client_autostart_(false),
       enable_ad_block_(true),
-      enable_split_tunnel_(false) {
+      enable_split_tunnel_(false),
+      reconnect_attempts_(10) {
 #if _WIN32
   wchar_t exe_path[MAX_PATH] = {};
   if (GetModuleFileNameW(nullptr, exe_path, MAX_PATH) != 0) {
@@ -274,6 +275,9 @@ void SettingsModel::Load(bool dont_load_server) {
   if (service_obj.contains("enable_ad_block")) {
     enable_ad_block_ = service_obj["enable_ad_block"].toBool();
   }
+  if (service_obj.contains("reconnect_attempts")) {
+    reconnect_attempts_ = service_obj["reconnect_attempts"].toInt();
+  }
 
   if (service_obj.contains("blacklist_domains")) {
     blacklist_domains_ = service_obj["blacklist_domains"].toString();
@@ -436,6 +440,7 @@ bool SettingsModel::Save() {
 #endif
 
   json_object["enable_ad_block"] = enable_ad_block_;
+  json_object["reconnect_attempts"] = reconnect_attempts_;
   json_object["blacklist_domains"] = blacklist_domains_;
   json_object["exclude_tunnel_networks"] = exclude_tunnel_networks_;
   json_object["include_tunnel_networks"] = include_tunnel_networks_;
@@ -782,4 +787,11 @@ void SettingsModel::PingServer(const QString& host, int port) {
       }
     }
   }
+}
+
+int SettingsModel::ReconnectAttempts() const { return reconnect_attempts_; }
+
+void SettingsModel::SetReconnectAttempts(int attempts) {
+    reconnect_attempts_ = attempts;
+    Save();
 }

@@ -37,6 +37,7 @@ class VpnManager final {
     fptn::common::network::TunInterfaceSPtr virtual_net_interface;
     fptn::plugin::PluginList plugins;
     fptn::adblock::AdBlockerPtr ad_blocker;
+    int max_reconnect_attempts = 10;
   };
 
  public:
@@ -64,7 +65,6 @@ class VpnManager final {
  private:
   mutable std::mutex mutex_;
   mutable std::mutex queue_mutex_;
-  static constexpr int kMaxFullRestarts_ = 10;
 
   std::atomic<bool> running_;
   std::atomic<bool> ever_connected_;

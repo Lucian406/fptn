@@ -286,6 +286,11 @@ class SettingsModel : public QObject {
   QString exclude_tunnel_networks_;
   QString include_tunnel_networks_;
   bool enable_split_tunnel_;
+  int reconnect_attempts_;
+
+  public:
+      int ReconnectAttempts() const;
+      void SetReconnectAttempts(int attempts);
   QString split_tunnel_mode_;
   QString split_tunnel_domains_;
 

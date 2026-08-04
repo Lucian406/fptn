@@ -107,6 +107,8 @@ class SettingsWidget : public QDialog {
 
   QLabel* enable_ad_block_label_ = nullptr;
   QCheckBox* enable_ad_block_checkbox_ = nullptr;
+  QLabel* reconnect_attempts_label_ = nullptr;
+  QComboBox* reconnect_attempts_combo_ = nullptr;
 
   QLabel* blacklist_domains_label_ = nullptr;
   QLabel* blacklist_domains_info_label_ = nullptr;
