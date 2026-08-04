@@ -1071,7 +1071,7 @@ bool TrayApp::startVpn(QString& err_msg) {
           .route_manager = route_manager,
           .virtual_net_interface = virtual_network_interface,
           .plugins = std::move(client_plugins),
-          .ad_blocker = std::move(ad_blocker);
+          .ad_blocker = std::move(ad_blocker),
           .max_reconnect_attempts = settings_->ReconnectAttempts()});
 
   if (cancel_connecting_) {
