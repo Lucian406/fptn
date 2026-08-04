@@ -211,8 +211,8 @@ void SettingsWidget::SetupUi() {
   custom_dns_layout->setStretch(0, 0);
   custom_dns_layout->setStretch(1, 1);
 
-  grid_layout_->addWidget(custom_dns_label_, 5, 0, Qt::AlignLeft);
-  grid_layout_->addLayout(custom_dns_layout, 5, 1);
+  grid_layout_->addWidget(custom_dns_label_, 6, 0, Qt::AlignLeft);
+  grid_layout_->addLayout(custom_dns_layout, 6, 1);
 
   connection_strategy_label_ =
       new QLabel(QObject::tr("Connection strategy"), this);
@@ -240,8 +240,8 @@ void SettingsWidget::SetupUi() {
             connection_strategy_combo_box_->currentData().toString());
       });
 
-  grid_layout_->addWidget(connection_strategy_label_, 6, 0, Qt::AlignLeft);
-  grid_layout_->addWidget(connection_strategy_combo_box_, 6, 1);
+  grid_layout_->addWidget(connection_strategy_label_, 7, 0, Qt::AlignLeft);
+  grid_layout_->addWidget(connection_strategy_combo_box_, 7, 1);
 
   bypass_method_label_ =
       new QLabel(QObject::tr("Bypass blocking method"), this);
@@ -348,8 +348,8 @@ void SettingsWidget::SetupUi() {
   connect(bypass_method_combo_box_, &QComboBox::currentTextChanged, this,
       &SettingsWidget::onBypassMethodChanged);
 
-  grid_layout_->addWidget(bypass_method_label_, 7, 0, Qt::AlignLeft);
-  grid_layout_->addWidget(bypass_method_combo_box_, 7, 1);
+  grid_layout_->addWidget(bypass_method_label_, 8, 0, Qt::AlignLeft);
+  grid_layout_->addWidget(bypass_method_combo_box_, 8, 1);
 
   sni_label_ = new QLabel(this);
   if (settings_->BypassMethod() == SettingsModel::kBypassMethodSniReality) {
