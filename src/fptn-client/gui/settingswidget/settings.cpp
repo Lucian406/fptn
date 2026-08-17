@@ -125,6 +125,14 @@ void SettingsWidget::SetupUi() {
   grid_layout_->addWidget(language_label_, 1, 0, Qt::AlignLeft);
   grid_layout_->addWidget(language_combo_box_, 1, 1, Qt::AlignLeft);
 
+  enable_ad_block_label_ = new QLabel(QObject::tr("Block ads"), this);
+  enable_ad_block_checkbox_ = new QCheckBox(" ", this);
+  enable_ad_block_checkbox_->setChecked(settings_->EnableAdBlock());
+  connect(enable_ad_block_checkbox_, &QCheckBox::toggled, this,
+      [this](bool checked) { settings_->SetEnableAdBlock(checked); });
+  grid_layout_->addWidget(enable_ad_block_label_, 2, 0, Qt::AlignLeft);
+  grid_layout_->addWidget(enable_ad_block_checkbox_, 2, 1, Qt::AlignLeft);
+
   interface_label_ =
       new QLabel(QObject::tr("Network Interface (adapter)"), this);
   interface_combo_box_ = new QComboBox(this);
@@ -132,8 +140,8 @@ void SettingsWidget::SetupUi() {
   interface_combo_box_->setCurrentText(settings_->UsingNetworkInterface());
   connect(interface_combo_box_, &QComboBox::currentTextChanged, this,
       &SettingsWidget::onInterfaceChanged);
-  grid_layout_->addWidget(interface_label_, 2, 0, Qt::AlignLeft);
-  grid_layout_->addWidget(interface_combo_box_, 2, 1, Qt::AlignLeft);
+  grid_layout_->addWidget(interface_label_, 3, 0, Qt::AlignLeft);
+  grid_layout_->addWidget(interface_combo_box_, 3, 1, Qt::AlignLeft);
 
   gateway_label_ = new QLabel(
       QObject::tr("Gateway IP Address (typically your router's address)"),
@@ -158,16 +166,8 @@ void SettingsWidget::SetupUi() {
   gateway_layout->setStretch(0, 0);
   gateway_layout->setStretch(1, 1);
 
-  grid_layout_->addWidget(gateway_label_, 3, 0, Qt::AlignLeft);
-  grid_layout_->addLayout(gateway_layout, 3, 1);
-
-  enable_ad_block_label_ = new QLabel(QObject::tr("Block ads"), this);
-  enable_ad_block_checkbox_ = new QCheckBox(" ", this);
-  enable_ad_block_checkbox_->setChecked(settings_->EnableAdBlock());
-  connect(enable_ad_block_checkbox_, &QCheckBox::toggled, this,
-      [this](bool checked) { settings_->SetEnableAdBlock(checked); });
-  grid_layout_->addWidget(enable_ad_block_label_, 4, 0, Qt::AlignLeft);
-  grid_layout_->addWidget(enable_ad_block_checkbox_, 4, 1, Qt::AlignLeft);
+  grid_layout_->addWidget(gateway_label_, 4, 0, Qt::AlignLeft);
+  grid_layout_->addLayout(gateway_layout, 4, 1);
 
   custom_dns_label_ = new QLabel(QObject::tr("Custom DNS"), this);
   custom_dns_auto_checkbox_ = new QCheckBox(QObject::tr("Auto"), this);
@@ -490,7 +490,7 @@ void SettingsWidget::SetupUi() {
   blacklist_domains_label_ = new QLabel(QObject::tr("Blacklist domains"), this);
   blacklist_domains_info_label_ = new QLabel(
       QObject::tr("Completely block access to the main domain AND all its "
-                  "subdomains. Format: domain:example.com (one per line)"),
+                  "subdomains. Format: example.com (one per line)"),
       this);
   blacklist_domains_info_label_->setWordWrap(true);
   blacklist_domains_info_label_->setMinimumHeight(60);
@@ -733,7 +733,7 @@ void SettingsWidget::SetupUi() {
       QSizePolicy::Expanding, QSizePolicy::Expanding);
   split_tunnel_domains_text_edit_->setMinimumHeight(80);
   split_tunnel_domains_text_edit_->setPlaceholderText(
-      QObject::tr("domain:com\ndomain:another.com\ndomain:sub.domainname.com"));
+      QObject::tr("com\nanother.com\nsub.domainname.com"));
   connect(
       split_tunnel_domains_text_edit_, &QTextEdit::textChanged, this, [this]() {
         settings_->SetSplitTunnelDomains(
@@ -1371,11 +1371,11 @@ void SettingsWidget::onLanguageChanged(const QString&) {
   if (blacklist_domains_info_label_) {
     blacklist_domains_info_label_->setText(
         QObject::tr("Completely block access to the main domain AND all its "
-                    "subdomains. Format: domain:example.com (one per line)"));
+                    "subdomains. Format: example.com (one per line)"));
   }
   if (blacklist_domains_text_edit_) {
     blacklist_domains_text_edit_->setPlaceholderText(
-        QObject::tr("domain:example.com\ndomain:another.com"));
+        QObject::tr("example.com\nanother.com"));
   }
 
   if (exclude_tunnel_networks_label_) {
@@ -1447,8 +1447,8 @@ void SettingsWidget::onLanguageChanged(const QString&) {
     }
   }
   if (split_tunnel_domains_text_edit_) {
-    split_tunnel_domains_text_edit_->setPlaceholderText(QObject::tr(
-        "domain:com\ndomain:another.com\ndomain:sub.domainname.com"));
+    split_tunnel_domains_text_edit_->setPlaceholderText(
+        QObject::tr("com\nanother.com\nsub.domainname.com"));
   }
 
   if (custom_dns_label_) {
