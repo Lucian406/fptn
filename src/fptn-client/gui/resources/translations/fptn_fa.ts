@@ -579,5 +579,13 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <source>Enables advanced DNS configuration to prevent leaks. Recommended when using split tunneling. Use with caution!</source>
             <translation>پیکربندی پیشرفته DNS را برای جلوگیری از نشت فعال می‌کند. هنگام استفاده از تونل تقسیم‌شده توصیه می‌شود. با احتیاط استفاده کنید!</translation>
         </message>
+        <message>
+            <source>Kill Switch</source>
+            <translation>کیل سوییچ</translation>
+        </message>
+        <message>
+            <source>Kill Switch enabled. Click to disconnect</source>
+            <translation>کیل سوییچ فعال است. برای قطع اتصال کلیک کنید</translation>
+        </message>
     </context>
 </TS>

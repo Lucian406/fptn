@@ -170,6 +170,12 @@ TrayApp::TrayApp(const SettingsModelPtr& settings, QObject* parent)
   connect(disconnect_action_, &QAction::triggered, this,
       &TrayApp::onDisconnectFromServer);
 
+  kill_switch_action_ = new QAction(
+    QObject::tr("Kill Switch enabled. Click to disable"), this);
+  kill_switch_action_->setVisible(false);
+  connect(kill_switch_action_, &QAction::triggered, this,
+      &TrayApp::onKillSwitchActivated);
+
   speed_widget_action_ = new QWidgetAction(this);
   speed_widget_action_->setDefaultWidget(speed_widget_);
 
@@ -214,6 +220,7 @@ TrayApp::TrayApp(const SettingsModelPtr& settings, QObject* parent)
   // Show menu
   // tray_menu_->addAction(connecting_action_);
   tray_menu_->addAction(disconnect_action_);
+  tray_menu_->addAction(kill_switch_action_);
   tray_menu_->addAction(connecting_label_action_);
   tray_menu_->addAction(disconnecting_label_action_);
   tray_menu_->addAction(reconnecting_label_action_);
@@ -737,6 +744,10 @@ void TrayApp::RetranslateUi() {
   if (connecting_label_action_) {
     connecting_label_action_->setText(QObject::tr("Connecting..."));
   }
+  if (kill_switch_action_) {
+    kill_switch_action_->setText(
+        QObject::tr("Kill Switch enabled. Click to disable"));
+  }
   if (empty_configuration_action_) {
     empty_configuration_action_->setText(QObject::tr("No servers"));
   }
@@ -1110,10 +1121,13 @@ bool TrayApp::startVpn(QString& err_msg) {
   // setup vpn client
   auto vpn_client = std::make_shared<fptn::vpn::VpnManager>(
       fptn::vpn::VpnManager::Config{.http_client = std::move(http_client),
-          .route_manager = route_manager,
-          .virtual_net_interface = virtual_network_interface,
-          .plugins = std::move(client_plugins),
-          .ad_blocker = std::move(ad_blocker)});
+                                    .route_manager = route_manager,
+                                    .virtual_net_interface = virtual_network_interface,
+                                    .plugins = std::move(client_plugins),
+                                    .ad_blocker = std::move(ad_blocker),
+                                    .on_reconnect_limit_reached = [this]() {
+                                      OnReconnectLimitReached();
+                                    }});
   {
     const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
@@ -1191,5 +1205,40 @@ void TrayApp::UpdatePings() {
         }
       }
     }
+  }
+}
+
+void TrayApp::onKillSwitchActivated() {
+  if (vpn_client_ && vpn_client_->GetRouteManager()) {
+    vpn_client_->GetRouteManager()->RemoveKillSwitch();
+  }
+  UpdateKillSwitchState(false);
+}
+
+void TrayApp::OnReconnectLimitReached() {
+  if (settings_->EnableKillSwitch()) {
+    if (vpn_client_ && vpn_client_->GetRouteManager()) {
+      vpn_client_->GetRouteManager()->ApplyKillSwitch();
+    }
+    QMetaObject::invokeMethod(this, [this] {
+      UpdateKillSwitchState(true);
+    }, Qt::QueuedConnection);
+  }
+}
+
+void TrayApp::UpdateKillSwitchState(bool active) {
+  if (active) {
+    if (connect_menu_) connect_menu_->setEnabled(false);
+    if (settings_action_) settings_action_->setEnabled(false);
+    if (disconnect_action_) disconnect_action_->setEnabled(false);
+    if (kill_switch_action_) {
+      kill_switch_action_->setVisible(true);
+      kill_switch_action_->setEnabled(true);
+    }
+  } else {
+    if (connect_menu_) connect_menu_->setEnabled(true);
+    if (settings_action_) settings_action_->setEnabled(true);
+    if (disconnect_action_) disconnect_action_->setEnabled(true);
+    if (kill_switch_action_) kill_switch_action_->setVisible(false);
   }
 }

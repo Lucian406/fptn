@@ -579,5 +579,13 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <source>Enables advanced DNS configuration to prevent leaks. Recommended when using split tunneling. Use with caution!</source>
             <translation>Enables advanced DNS configuration to prevent leaks. Recommended when using split tunneling. Use with caution!</translation>
         </message>
+        <message>
+            <source>Kill Switch</source>
+            <translation>Kill Switch</translation>
+        </message>
+        <message>
+            <source>Kill Switch enabled. Click to disconnect</source>
+            <translation>Kill Switch enabled. Click to disconnect</translation>
+        </message>
     </context>
 </TS>

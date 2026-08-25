@@ -60,6 +60,9 @@ class TrayApp : public QWidget {
  protected slots:
   void onConnectToServer();
   void onDisconnectFromServer();
+  void onKillSwitchActivated();
+  void OnReconnectLimitReached();
+  void UpdateKillSwitchState(bool active);
   void onShowSettings();
 
   // cppcheck-suppress unknownMacro
@@ -98,6 +101,7 @@ class TrayApp : public QWidget {
   QMenu* limited_zone_connect_menu_ = nullptr;
   QAction* empty_configuration_action_ = nullptr;
   QAction* disconnect_action_ = nullptr;
+  QAction* kill_switch_action_ = nullptr;
   //  QAction* connecting_action_ = nullptr;
   QAction* settings_action_ = nullptr;
 
