@@ -53,6 +53,7 @@ class VpnManager final {
   bool IsReconnecting() const;
   int ReconnectAttempt() const;
   int MaxReconnectAttempts() const;
+  bool IsGaveUp() const { return gave_up_; }
   [[nodiscard]] std::string GetInterfaceName() const;
 
   fptn::routing::RouteManagerSPtr GetRouteManager() const {

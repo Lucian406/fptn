@@ -125,6 +125,7 @@ class TrayApp : public QWidget {
 
   // connecting
   std::atomic<bool> connecting_in_progress_{false};
+  std::atomic<bool> kill_switch_active_{false};
 
   QTimer* ping_update_timer_{nullptr};
 

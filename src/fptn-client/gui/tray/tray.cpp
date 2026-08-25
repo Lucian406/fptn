@@ -171,7 +171,7 @@ TrayApp::TrayApp(const SettingsModelPtr& settings, QObject* parent)
       &TrayApp::onDisconnectFromServer);
 
   kill_switch_action_ = new QAction(
-    QObject::tr("Kill Switch enabled. Click to disable"), this);
+    QObject::tr("Kill Switch enabled. Click to disconnect"), this);
   kill_switch_action_->setVisible(false);
   connect(kill_switch_action_, &QAction::triggered, this,
       &TrayApp::onKillSwitchActivated);
@@ -532,6 +532,10 @@ void TrayApp::UpdateTrayMenu() {
     fptn::gui::SetTranslation(selected_language);
   }
   RetranslateUi();
+
+  if (kill_switch_active_) {
+    UpdateKillSwitchState(true);
+  }
 }
 
 void TrayApp::onConnectToServer() {
@@ -587,8 +591,10 @@ void TrayApp::handleDefaultState() {
     settings_->StartPingMonitoring();
 
     connection_state_ = ConnectionState::None;
-    vpn_client = std::move(vpn_client_);
+    if (!kill_switch_active_) {
+      vpn_client = std::move(vpn_client_);
   }
+}
   if (vpn_client) {
     vpn_client->Stop();
   }
@@ -661,6 +667,7 @@ void TrayApp::handleTimer() {
 
   // check connection state
   bool is_disconnected = false;
+  bool kill_switch_handled = false;
   {
     const std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);  // mutex
 
@@ -677,6 +684,8 @@ void TrayApp::handleTimer() {
           reconnection_in_progress = true;
           last_reconnection_time = now;
           is_disconnected = true;
+          kill_switch_handled =
+              settings_->EnableKillSwitch() && vpn_client_->IsGaveUp();
         }
       } else if (vpn_client_->IsReconnecting()) {
         if (reconnecting_label_action_) {
@@ -712,9 +721,10 @@ void TrayApp::handleTimer() {
   }
 
   if (is_disconnected) {
-    // show error
-    ShowError(QObject::tr("FPTN Connection Error"),
-        QObject::tr("The VPN connection was unexpectedly closed."));
+    if (!kill_switch_handled) {
+      ShowError(QObject::tr("FPTN Connection Error"),
+          QObject::tr("The VPN connection was unexpectedly closed."));
+    }
     SPDLOG_INFO("FPTN Connection Error");
     emit disconnecting();
   }
@@ -746,7 +756,7 @@ void TrayApp::RetranslateUi() {
   }
   if (kill_switch_action_) {
     kill_switch_action_->setText(
-        QObject::tr("Kill Switch enabled. Click to disable"));
+        QObject::tr("Kill Switch enabled. Click to disconnect"));
   }
   if (empty_configuration_action_) {
     empty_configuration_action_->setText(QObject::tr("No servers"));
@@ -1161,6 +1171,11 @@ bool TrayApp::startVpn(QString& err_msg) {
 bool TrayApp::stopVpn() {
   SPDLOG_INFO("Stopping vpn");
 
+  if (kill_switch_active_) {
+    SPDLOG_INFO("Kill Switch active: keeping TUN alive to preserve the block");
+    return true;
+  }
+
   fptn::vpn::VpnClientPtr vpn_client;
   {
     const std::unique_lock<std::mutex> lock(mutex_);  // mutex
@@ -1209,14 +1224,17 @@ void TrayApp::UpdatePings() {
 }
 
 void TrayApp::onKillSwitchActivated() {
+  kill_switch_active_ = false;
   if (vpn_client_ && vpn_client_->GetRouteManager()) {
     vpn_client_->GetRouteManager()->RemoveKillSwitch();
   }
   UpdateKillSwitchState(false);
+  stopVpn();
 }
 
 void TrayApp::OnReconnectLimitReached() {
   if (settings_->EnableKillSwitch()) {
+    kill_switch_active_ = true;
     if (vpn_client_ && vpn_client_->GetRouteManager()) {
       vpn_client_->GetRouteManager()->ApplyKillSwitch();
     }
