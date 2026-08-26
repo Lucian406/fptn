@@ -179,6 +179,11 @@ TrayApp::TrayApp(const SettingsModelPtr& settings, QObject* parent)
   speed_widget_action_ = new QWidgetAction(this);
   speed_widget_action_->setDefaultWidget(speed_widget_);
 
+  connection_time_action_ = new QAction(
+      QObject::tr("Connection time: %1").arg("00:00:00"), this);
+  connection_time_action_->setEnabled(false);
+  connection_time_action_->setVisible(false);
+
   // Settings
   connect(settings_.get(), &SettingsModel::dataChanged, this,
       &TrayApp::UpdateTrayMenu);
@@ -225,6 +230,7 @@ TrayApp::TrayApp(const SettingsModelPtr& settings, QObject* parent)
   tray_menu_->addAction(disconnecting_label_action_);
   tray_menu_->addAction(reconnecting_label_action_);
   tray_menu_->addAction(speed_widget_action_);
+  tray_menu_->addAction(connection_time_action_);
   tray_menu_->addSeparator();
   tray_menu_->addAction(settings_action_);
   tray_menu_->addSeparator();
@@ -436,6 +442,9 @@ void TrayApp::UpdateTrayMenu() {
       if (speed_widget_action_) {
         speed_widget_action_->setVisible(false);
       }
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(false);
+      }
       if (settings_action_) {
         settings_action_->setEnabled(true);
       }
@@ -464,6 +473,9 @@ void TrayApp::UpdateTrayMenu() {
       if (speed_widget_action_) {
         speed_widget_action_->setVisible(false);
       }
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(false);
+      }
       if (settings_action_) {
         settings_action_->setEnabled(false);
       }
@@ -491,6 +503,9 @@ void TrayApp::UpdateTrayMenu() {
       if (speed_widget_action_) {
         speed_widget_action_->setVisible(true);
       }
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(true);
+      }
       if (connecting_label_action_) {
         connecting_label_action_->setVisible(false);
       }
@@ -508,7 +523,10 @@ void TrayApp::UpdateTrayMenu() {
         disconnect_action_->setVisible(false);
       }
       if (speed_widget_action_) {
-        speed_widget_action_->setVisible(false);
+        speed_widget_action_->setVisible(true);
+      }
+      if (connection_time_action_) {
+        connection_time_action_->setVisible(true);
       }
       if (settings_action_) {
         settings_action_->setEnabled(false);
@@ -560,6 +578,7 @@ void TrayApp::onDisconnectFromServer() {
 
     settings_->StartPingMonitoring();
 
+    ResetConnectionTime();
     UpdateTrayMenu();
   }
   if (vpn_client) {
@@ -598,6 +617,7 @@ void TrayApp::handleDefaultState() {
   if (vpn_client) {
     vpn_client->Stop();
   }
+  ResetConnectionTime();
   UpdateTrayMenu();
 }
 
@@ -647,6 +667,9 @@ void TrayApp::handleConnected() {
     if (vpn_client_) {
       vpn_client_->MarkConnected();
     }
+    accumulated_ = std::chrono::seconds::zero();
+    session_start_ = std::chrono::steady_clock::now();
+    paused_ = false;
   }
   UpdateTrayMenu();
 }
@@ -691,6 +714,11 @@ void TrayApp::handleTimer() {
               settings_->EnableKillSwitch() && vpn_client_->IsGaveUp();
         }
       } else if (vpn_client_->IsReconnecting()) {
+        if (!paused_) {
+          accumulated_ += std::chrono::duration_cast<std::chrono::seconds>(
+              std::chrono::steady_clock::now() - session_start_);
+          paused_ = true;
+        }
         if (reconnecting_label_action_) {
           const int n = vpn_client_->ReconnectAttempt();
           QString text = QObject::tr("Reconnecting...");
@@ -709,6 +737,10 @@ void TrayApp::handleTimer() {
         // Re-arm the check: the tunnel is healthy again, so the next
         // unexpected close has to be reported too.
         reconnection_in_progress = false;
+        if (paused_) {   // ← ДОБАВИТЬ
+          session_start_ = std::chrono::steady_clock::now();
+          paused_ = false;
+        }
         if (reconnecting_label_action_) {
           reconnecting_label_action_->setVisible(false);
         }
@@ -721,6 +753,10 @@ void TrayApp::handleTimer() {
         }
       }
     }
+  }
+
+  if (connection_state_ == ConnectionState::Connected) {
+    UpdateConnectionTimeLabel();
   }
 
   if (is_disconnected) {
@@ -1256,10 +1292,41 @@ void TrayApp::UpdateKillSwitchState(bool active) {
       kill_switch_action_->setVisible(true);
       kill_switch_action_->setEnabled(true);
     }
+    if (connection_time_action_) {
+      connection_time_action_->setVisible(false);
+    }
   } else {
     if (connect_menu_) connect_menu_->setEnabled(true);
     if (settings_action_) settings_action_->setEnabled(true);
     if (disconnect_action_) disconnect_action_->setEnabled(true);
     if (kill_switch_action_) kill_switch_action_->setVisible(false);
+  }
+}
+
+void TrayApp::UpdateConnectionTimeLabel() {
+  if (!connection_time_action_) {
+    return;
+  }
+  std::chrono::seconds total = accumulated_;
+  if (!paused_) {
+    total += std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::steady_clock::now() - session_start_);
+  }
+  const auto t = total.count();
+  QString text = QString("%1:%2:%3")
+                     .arg(t / 3600, 2, 10, QChar('0'))
+                     .arg((t % 3600) / 60, 2, 10, QChar('0'))
+                     .arg(t % 60, 2, 10, QChar('0'));
+  if (paused_) {
+    text = QObject::tr("%1 (pause)").arg(text);
+  }
+  connection_time_action_->setText(QObject::tr("Connection time: %1").arg(text));
+}
+
+void TrayApp::ResetConnectionTime() {
+  accumulated_ = std::chrono::seconds::zero();
+  paused_ = false;
+  if (connection_time_action_) {
+    connection_time_action_->setVisible(false);
   }
 }

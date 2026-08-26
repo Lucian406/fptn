@@ -587,5 +587,13 @@ This may cause network connectivity issues or prevent proper operation of FPTN.<
             <source>Kill Switch enabled. Click to disconnect</source>
             <translation>Kill Switch enabled. Click to disconnect</translation>
         </message>
+		<message>
+    		<source>Connection time: %1</source>
+    		<translation>Connection time: %1</translation>
+		</message>
+		<message>
+    		<source>%1 (pause)</source>
+    		<translation>%1 (pause)</translation>
+		</message>
     </context>
 </TS>
