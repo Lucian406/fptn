@@ -644,6 +644,9 @@ void TrayApp::handleConnected() {
     const std::unique_lock<std::mutex> lock(mutex_);  // mutex
 
     connection_state_ = ConnectionState::Connected;
+    if (vpn_client_) {
+      vpn_client_->MarkConnected();
+    }
   }
   UpdateTrayMenu();
 }
